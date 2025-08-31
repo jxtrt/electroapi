@@ -14,6 +14,9 @@ from electroapi.remote.fetcher import Fetcher
 load_dotenv()
 app = FastAPI()
 
+base_url = os.getenv("BASE_ESIOS_API_URL", "https://api.esios.ree.es")
+fetcher = Fetcher(base_url=base_url)  # init here to preserve obj state (cache)
+
 
 @app.get("/areas", response_model=List[Area])
 async def get_areas():
@@ -39,10 +42,8 @@ async def get_today():
     """
     Get today's data from the remote API.
     """
-    base_url = os.getenv("BASE_ESIOS_API_URL", "https://api.esios.ree.es")
     try:
 
-        fetcher = Fetcher(base_url=base_url)
         raw_data = fetcher.today()
 
         def _sanitize_geo_limit(geo_name: str) -> str:
