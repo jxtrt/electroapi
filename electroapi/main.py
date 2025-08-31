@@ -3,11 +3,13 @@
 import json
 import os
 from typing import List
+from datetime import datetime
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from electroapi.schema import Area
+from electroapi.schema import Area, PriceDataPoint
+from electroapi.remote.fetcher import Fetcher
 
 load_dotenv()
 app = FastAPI()
@@ -30,3 +32,41 @@ async def get_areas():
         return {"error": "Areas file not found."}
     except (json.JSONDecodeError, ValueError):
         return {"error": "Error decoding areas JSON file."}
+
+
+@app.get("/today", response_model=List[PriceDataPoint])
+async def get_today():
+    """
+    Get today's data from the remote API.
+    """
+    base_url = os.getenv("BASE_ESIOS_API_URL", "https://api.esios.ree.es")
+    try:
+
+        fetcher = Fetcher(base_url=base_url)
+        raw_data = fetcher.today()
+
+        def _sanitize_geo_limit(geo_name: str) -> str:
+            """Sanitize the geo_limit value based on known valid values."""
+            valid_limits = {"peninsular", "canarias", "baleares", "ceuta", "melilla"}
+            geo_name_lower = geo_name.lower()
+            if geo_name_lower in valid_limits:
+                return geo_name_lower
+            return "peninsular"
+
+        return [
+            PriceDataPoint(
+                timestamp=datetime.fromisoformat(point["datetime_utc"]),
+                price=point["value"],
+                area=Area(
+                    name=point["geo_name"],
+                    geo_limit=_sanitize_geo_limit(
+                        point["geo_name"]
+                    ),  # they do not respect their own schema yay!
+                    geo_id=point["geo_id"],
+                ),
+            )
+            for point in raw_data
+        ]
+
+    except Exception as e:
+        return {"error": str(e)}
