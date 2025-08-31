@@ -1,0 +1,124 @@
+{
+    "areas": [
+        {
+            "name": "peninsular",
+            "geo_limit": "peninsular",
+            "geo_id": "8741"
+        },
+        {
+            "name": "canarias",
+            "geo_limit": "canarias",
+            "geo_id": "8742"
+        },
+        {
+            "name": "baleares",
+            "geo_limit": "baleares",
+            "geo_id": "8743"
+        },
+        {
+            "name": "ceuta",
+            "geo_limit": "ceuta",
+            "geo_id": "8744"
+        },
+        {
+            "name": "melilla",
+            "geo_limit": "melilla",
+            "geo_id": "8745"
+        },
+        {
+            "name": "Andalucía",
+            "geo_limit": "ccaa",
+            "geo_id": "4"
+        },
+        {
+            "name": "Aragón",
+            "geo_limit": "ccaa",
+            "geo_id": "5"
+        },
+        {
+            "name": "Cantabria",
+            "geo_limit": "ccaa",
+            "geo_id": "6"
+        },
+        {
+            "name": "Castilla la Mancha",
+            "geo_limit": "ccaa",
+            "geo_id": "7"
+        },
+        {
+            "name": "Castilla y León",
+            "geo_limit": "ccaa",
+            "geo_id": "8"
+        },
+        {
+            "name": "Cataluña",
+            "geo_limit": "ccaa",
+            "geo_id": "9"
+        },
+        {
+            "name": "País Vasco",
+            "geo_limit": "ccaa",
+            "geo_id": "10"
+        },
+        {
+            "name": "Principado de Asturias",
+            "geo_limit": "ccaa",
+            "geo_id": "11"
+        },
+        {
+            "name": "Comunidad de Ceuta",
+            "geo_limit": "ccaa",
+            "geo_id": "8744"
+        },
+        {
+            "name": "Comunidad de Melilla",
+            "geo_limit": "ccaa",
+            "geo_id": "8745"
+        },
+        {
+            "name": "Comunidad de Madrid",
+            "geo_limit": "ccaa",
+            "geo_id": "13"
+        },
+        {
+            "name": "Comunidad de Navarra",
+            "geo_limit": "ccaa",
+            "geo_id": "14"
+        },
+        {
+            "name": "Comunidad Valenciana",
+            "geo_limit": "ccaa",
+            "geo_id": "15"
+        },
+        {
+            "name": "Extremadura",
+            "geo_limit": "ccaa",
+            "geo_id": "16"
+        },
+        {
+            "name": "Galicia",
+            "geo_limit": "ccaa",
+            "geo_id": "17"
+        },
+        {
+            "name": "Islas Baleares",
+            "geo_limit": "ccaa",
+            "geo_id": "8743"
+        },
+        {
+            "name": "Islas Canarias",
+            "geo_limit": "ccaa",
+            "geo_id": "8742"
+        },
+        {
+            "name": "La Rioja",
+            "geo_limit": "ccaa",
+            "geo_id": "20"
+        },
+        {
+            "name": "Región de Murcia",
+            "geo_limit": "ccaa",
+            "geo_id": "21"
+        }
+    ]
+}
