@@ -24,7 +24,7 @@ async def get_areas():
 
     try:
         with open(areas_json_path, "r", encoding="utf-8") as f:
-            areas_data = json.load(f)
+            areas_data = json.load(f)["areas"]
             return [Area(**area) for area in areas_data]
     except FileNotFoundError:
         return {"error": "Areas file not found."}
