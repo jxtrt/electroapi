@@ -21,6 +21,6 @@ class Area(BaseModel):
     Harvested from hardcoded values on https://www.ree.es/themes/custom/ree/js/ree.js?t1jmnh
     """
 
-    name: str
+    geo_name: str
     geo_limit: GeoLimit
     geo_id: int

@@ -3,12 +3,12 @@
 import json
 import os
 from typing import List
-from datetime import datetime
 
+import pandas as pd
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from electroapi.schema import Area, PriceDataPoint
+from electroapi.schema import Area, PriceDataPoint, GeoLimit
 from electroapi.remote.fetcher import Fetcher
 
 load_dotenv()
@@ -37,16 +37,15 @@ async def get_areas():
         return {"error": "Error decoding areas JSON file."}
 
 
-@app.get("/today", response_model=List[PriceDataPoint])
-async def get_today():
+@app.get("/today")
+async def get_today(geo_limit: GeoLimit = GeoLimit.PENINSULAR):
     """
     Get today's data from the remote API.
     """
+
     try:
 
-        raw_data = fetcher.today()
-
-        def _sanitize_geo_limit(geo_name: str) -> str:
+        def _sanitize_geo_name(geo_name: str) -> str:
             """Sanitize the geo_limit value based on known valid values."""
             valid_limits = {"peninsular", "canarias", "baleares", "ceuta", "melilla"}
             geo_name_lower = geo_name.lower()
@@ -54,20 +53,21 @@ async def get_today():
                 return geo_name_lower
             return "peninsular"
 
-        return [
-            PriceDataPoint(
-                timestamp=datetime.fromisoformat(point["datetime_utc"]),
-                price=point["value"],
-                area=Area(
-                    name=point["geo_name"],
-                    geo_limit=_sanitize_geo_limit(
-                        point["geo_name"]
-                    ),  # they do not respect their own schema yay!
-                    geo_id=point["geo_id"],
-                ),
-            )
-            for point in raw_data
-        ]
+        data = fetcher.today()
+        df = pd.DataFrame(data)
 
+        df = df.rename(columns={"value": "price"})
+        df["geo_limit"] = df["geo_name"].apply(_sanitize_geo_name)
+        df = df.drop(columns=["datetime", "tz_time", "geo_id", "geo_name"])
+        df["timestamp"] = pd.to_datetime(df["datetime_utc"], errors="coerce")
+        df = df.drop(columns=["datetime_utc"])
+
+        # simple filtering by geo_limit
+        df = df[df["geo_limit"] == geo_limit.value]
+
+        # construct response as array of PriceDataPoint
+        response = [PriceDataPoint(**row) for row in df.to_dict(orient="records")]
+
+        return response
     except Exception as e:
         return {"error": str(e)}

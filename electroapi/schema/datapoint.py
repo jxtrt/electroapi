@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from pydantic import BaseModel
-from .area import Area
+from .area import GeoLimit
 
 
 class PriceDataPoint(BaseModel):
@@ -12,7 +12,8 @@ class PriceDataPoint(BaseModel):
 
     timestamp: datetime  # utc, ofc
     price: float
-    area: Area
+    unit: str = "€/MWh"
+    geo_limit: GeoLimit
 
 
 # other datapoints if needed
