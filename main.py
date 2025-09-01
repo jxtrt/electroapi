@@ -11,14 +11,24 @@ import uvicorn
 from electroapi.scheduler import Scheduler
 from electroapi.schema import Area, PriceDataPoint, GeoLimit
 from electroapi.remote.fetcher import Fetcher
+from electroapi.api.rate_limit import RateLimitMiddleware
 
 load_dotenv()
+
+MAX_REQUESTS = 10
+WINDOW_SECONDS = 60
+
 app = FastAPI()
+
 
 fetcher = Fetcher(
     base_url=os.getenv("BASE_ESIOS_API_URL", "https://api.esios.ree.es"),
     token=os.getenv("ESIOS_API_TOKEN"),
 )  # inits here to preserve obj state (cache)
+
+app.add_middleware(
+    RateLimitMiddleware, max_requests=MAX_REQUESTS, window_seconds=WINDOW_SECONDS
+)
 
 
 @app.get("/areas", response_model=List[Area])
