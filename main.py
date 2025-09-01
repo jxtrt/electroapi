@@ -46,10 +46,8 @@ async def get_areas():
             return [Area(**area) for area in areas_data]
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Areas file not found.")
-    except (json.JSONDecodeError, ValueError) as e:
-        raise HTTPException(
-            status_code=500, detail=f"Error decoding areas JSON file: {e}"
-        )
+    except (json.JSONDecodeError, ValueError):
+        raise HTTPException(status_code=500, detail="Error retrieving areas data.")
 
 
 @app.get("/today")
@@ -68,8 +66,8 @@ async def get_today(geo_limit: GeoLimit = GeoLimit.PENINSULAR):
         response = [PriceDataPoint(**row) for row in data.to_dict(orient="records")]
 
         return response
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500)
 
 
 @app.get("/schedule")
@@ -121,8 +119,8 @@ async def get_scheduling(
             "total_blocks": total_blocks,
         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500)
 
 
 if __name__ == "__main__":
