@@ -45,5 +45,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 content={"detail": "Rate limit exceeded. Try again later."},
             )
 
+        self.requests = {
+            key: value
+            for key, value in self.requests.items()
+            if current_time - value[0] <= self.window_seconds
+        }
+
         response = await call_next(request)
         return response

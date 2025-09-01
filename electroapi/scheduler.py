@@ -15,7 +15,7 @@ class Scheduler:
             row["hour"]: row["price"] for _, row in data.iterrows()
         }
 
-    def n_blocks(self, hours: List[Tuple]) -> int:
+    def n_blocks(self, hours: List[Tuple[int]]) -> int:
         """Calculate the number of consecutive hour blocks in a list of hours."""
         if not hours:
             return 0

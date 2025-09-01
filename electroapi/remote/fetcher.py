@@ -10,6 +10,8 @@ import pandas as pd
 class Fetcher:
     """Fetcher class for remote data."""
 
+    VALID_LIMITS = {"peninsular", "canarias", "baleares", "ceuta", "melilla"}
+
     def __init__(self, base_url: str, token: str):
         self.base_url = base_url
         self.cache = {}
@@ -49,12 +51,8 @@ class Fetcher:
         return self.cache["today"]
 
     def _sanitize_geo_name(self, geo_name: str) -> str:
-        """Sanitize the geo_limit value based on known valid values."""
-        valid_limits = {"peninsular", "canarias", "baleares", "ceuta", "melilla"}
         geo_name_lower = geo_name.lower()
-        if geo_name_lower in valid_limits:
-            return geo_name_lower
-        return "peninsular"
+        return geo_name_lower if geo_name_lower in self.VALID_LIMITS else "peninsular"
 
     def today(self) -> pd.DataFrame:
         """Get today's data as a DataFrame."""
