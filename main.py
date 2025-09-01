@@ -5,7 +5,7 @@ import os
 from typing import List
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import uvicorn
 
 from electroapi.scheduler import Scheduler
@@ -45,9 +45,11 @@ async def get_areas():
             areas_data = json.load(f)["areas"]
             return [Area(**area) for area in areas_data]
     except FileNotFoundError:
-        return {"error": "Areas file not found."}
+        raise HTTPException(status_code=404, detail="Areas file not found.")
     except (json.JSONDecodeError, ValueError) as e:
-        return {"error": f"Error decoding areas JSON file: {e}"}
+        raise HTTPException(
+            status_code=500, detail=f"Error decoding areas JSON file: {e}"
+        )
 
 
 @app.get("/today")
@@ -67,7 +69,7 @@ async def get_today(geo_limit: GeoLimit = GeoLimit.PENINSULAR):
 
         return response
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/schedule")
@@ -82,9 +84,13 @@ async def get_scheduling(
     """
 
     if power_on_hours > 24:
-        return {"error": "power_on_hours must be less than or equal to 24."}
+        raise HTTPException(
+            status_code=400, detail="power_on_hours must be less than or equal to 24."
+        )
     if geo_limit == GeoLimit.CCAA:
-        return {"error": "geo_limit cannot be 'ccaa' for scheduling."}
+        raise HTTPException(
+            status_code=400, detail="geo_limit cannot be 'ccaa' for scheduling."
+        )
 
     try:
 
@@ -96,7 +102,10 @@ async def get_scheduling(
         )
 
         if schedule.empty:
-            return {"error": "No valid schedule found with the given parameters."}
+            raise HTTPException(
+                status_code=422,
+                detail="No valid schedule found with the given parameters.",
+            )
 
         ret_schedule = [
             PriceDataPoint(**row) for row in schedule.to_dict(orient="records")
@@ -113,7 +122,7 @@ async def get_scheduling(
         }
 
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

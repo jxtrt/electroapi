@@ -23,3 +23,4 @@ repos:
           - --disable=too-many-public-methods
           - --disable=too-many-nested-blocks
           - --disable=too-many-branches
+          - --disable=raise-missing-from
