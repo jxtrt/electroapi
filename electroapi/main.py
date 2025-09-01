@@ -4,7 +4,6 @@ import json
 import os
 from typing import List
 
-import pandas as pd
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
@@ -14,8 +13,10 @@ from electroapi.remote.fetcher import Fetcher
 load_dotenv()
 app = FastAPI()
 
-base_url = os.getenv("BASE_ESIOS_API_URL", "https://api.esios.ree.es")
-fetcher = Fetcher(base_url=base_url)  # init here to preserve obj state (cache)
+fetcher = Fetcher(
+    base_url=os.getenv("BASE_ESIOS_API_URL", "https://api.esios.ree.es"),
+    token=os.getenv("ESIOS_API_TOKEN"),
+)  # inits here to preserve obj state (cache)
 
 
 @app.get("/areas", response_model=List[Area])
@@ -44,29 +45,31 @@ async def get_today(geo_limit: GeoLimit = GeoLimit.PENINSULAR):
     """
 
     try:
-
-        def _sanitize_geo_name(geo_name: str) -> str:
-            """Sanitize the geo_limit value based on known valid values."""
-            valid_limits = {"peninsular", "canarias", "baleares", "ceuta", "melilla"}
-            geo_name_lower = geo_name.lower()
-            if geo_name_lower in valid_limits:
-                return geo_name_lower
-            return "peninsular"
-
         data = fetcher.today()
-        df = pd.DataFrame(data)
-
-        df = df.rename(columns={"value": "price"})
-        df["geo_limit"] = df["geo_name"].apply(_sanitize_geo_name)
-        df = df.drop(columns=["datetime", "tz_time", "geo_id", "geo_name"])
-        df["timestamp"] = pd.to_datetime(df["datetime_utc"], errors="coerce")
-        df = df.drop(columns=["datetime_utc"])
 
         # simple filtering by geo_limit
-        df = df[df["geo_limit"] == geo_limit.value]
+        data = data[data["geo_limit"] == geo_limit.value]
 
         # construct response as array of PriceDataPoint
-        response = [PriceDataPoint(**row) for row in df.to_dict(orient="records")]
+        response = [PriceDataPoint(**row) for row in data.to_dict(orient="records")]
+
+        return response
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/schedule")
+async def get_scheduling(_: int):
+    """
+    Get today's data from the remote API.
+    """
+
+    try:
+
+        data = fetcher.today()
+
+        # construct response as array of PriceDataPoint
+        response = [PriceDataPoint(**row) for row in data.to_dict(orient="records")]
 
         return response
     except Exception as e:
