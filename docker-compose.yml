@@ -1,0 +1,10 @@
+
+services:
+  electroapi:
+    image: ghcr.io/jxtrt/electroapi:v1.0.0
+    ports:
+      - "8380:80"
+    environment:
+      - AREAS_JSON_PATH=./electroapi/data/areas.json
+      - BASE_ESIOS_API_URL=https://api.esios.ree.es
+      - ESIOS_API_TOKEN=${ESIOS_API_TOKEN}

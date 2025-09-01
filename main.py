@@ -20,10 +20,13 @@ WINDOW_SECONDS = 60
 
 app = FastAPI()
 
+token = os.getenv("ESIOS_API_TOKEN")
+if not token:
+    raise ValueError("ESIOS_API_TOKEN environment variable is not set.")
 
 fetcher = Fetcher(
     base_url=os.getenv("BASE_ESIOS_API_URL", "https://api.esios.ree.es"),
-    token=os.getenv("ESIOS_API_TOKEN"),
+    token=token,
 )  # inits here to preserve obj state (cache)
 
 app.add_middleware(
