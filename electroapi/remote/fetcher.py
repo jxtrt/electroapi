@@ -64,8 +64,7 @@ class Fetcher:
 
         df = df.rename(columns={"value": "price"})
         df["geo_limit"] = df["geo_name"].apply(self._sanitize_geo_name)
-        df = df.drop(columns=["datetime", "tz_time", "geo_id", "geo_name"])
-        df["timestamp"] = pd.to_datetime(df["datetime_utc"], errors="coerce")
-        df = df.drop(columns=["datetime_utc"])
-
+        df = df.drop(columns=["tz_time", "geo_id", "geo_name", "datetime_utc"])
+        df["timestamp"] = pd.to_datetime(df["datetime"], errors="coerce")
+        df["hour"] = df["timestamp"].dt.hour
         return df

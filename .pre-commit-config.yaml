@@ -21,3 +21,5 @@ repos:
           - --disable=broad-exception-caught
           - --disable=duplicate-code
           - --disable=too-many-public-methods
+          - --disable=too-many-nested-blocks
+          - --disable=too-many-branches

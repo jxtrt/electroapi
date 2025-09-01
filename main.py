@@ -6,7 +6,9 @@ from typing import List
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
+import uvicorn
 
+from electroapi.scheduler import Scheduler
 from electroapi.schema import Area, PriceDataPoint, GeoLimit
 from electroapi.remote.fetcher import Fetcher
 
@@ -26,7 +28,7 @@ async def get_areas():
     Return an array of Area objects.
     """
     # parsing json directly here is just cleaner
-    areas_json_path = os.getenv("AREAS_JSON_PATH", "./data/areas.json")
+    areas_json_path = os.getenv("AREAS_JSON_PATH", "./electroapi/data/areas.json")
 
     try:
         with open(areas_json_path, "r", encoding="utf-8") as f:
@@ -34,8 +36,8 @@ async def get_areas():
             return [Area(**area) for area in areas_data]
     except FileNotFoundError:
         return {"error": "Areas file not found."}
-    except (json.JSONDecodeError, ValueError):
-        return {"error": "Error decoding areas JSON file."}
+    except (json.JSONDecodeError, ValueError) as e:
+        return {"error": f"Error decoding areas JSON file: {e}"}
 
 
 @app.get("/today")
@@ -59,18 +61,50 @@ async def get_today(geo_limit: GeoLimit = GeoLimit.PENINSULAR):
 
 
 @app.get("/schedule")
-async def get_scheduling(_: int):
+async def get_scheduling(
+    power_on_hours: int,
+    max_blocks: int = None,
+    geo_limit: GeoLimit = GeoLimit.PENINSULAR,
+):
     """
     Get today's data from the remote API.
+    Given a number of power-on hours needed, return the optimal schedule.
     """
+
+    if power_on_hours > 24:
+        return {"error": "power_on_hours must be less than or equal to 24."}
+    if geo_limit == GeoLimit.CCAA:
+        return {"error": "geo_limit cannot be 'ccaa' for scheduling."}
 
     try:
 
         data = fetcher.today()
+        data = data[data["geo_limit"] == geo_limit.value]
+        scheduler = Scheduler(data)
+        schedule = scheduler.schedule(
+            power_on_hours=power_on_hours, max_blocks=max_blocks
+        )
 
-        # construct response as array of PriceDataPoint
-        response = [PriceDataPoint(**row) for row in data.to_dict(orient="records")]
+        if schedule.empty:
+            return {"error": "No valid schedule found with the given parameters."}
 
-        return response
+        ret_schedule = [
+            PriceDataPoint(**row) for row in schedule.to_dict(orient="records")
+        ]
+        cost_sum = sum(ret_schedule[i].price for i in range(len(ret_schedule)))
+        total_blocks = scheduler.n_blocks(
+            [(row.timestamp.hour,) for row in ret_schedule]
+        )
+
+        return {
+            "schedule": ret_schedule,
+            "cost_sum": cost_sum,
+            "total_blocks": total_blocks,
+        }
+
     except Exception as e:
         return {"error": str(e)}
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
